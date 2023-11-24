@@ -1848,14 +1848,20 @@ def _trunc_op_rule(  # pylint: disable=missing-function-docstring
           col = min(col_base + i, input_vregs.shape[-1] - 1)
           parts.append(input_vregs[(*idx[:-1], col)])
         output_vregs[idx] = tpu.PackSubelementsOp(res_vreg_ty, parts)
-    elif layout_out.bitwidth == 16 and layout_out.tiling == (16, 128):
+    elif layout_out.has_native_tiling:
+      packing = layout_out.packing
       for idx in np.ndindex(output_vregs.shape):
-        first = input_vregs[(*idx[:-2], idx[-2] * 2, idx[-1])]
-        if idx[-2] * 2 + 1 == input_vregs.shape[-2]:
-          second = first  # OOB, so we can pack any data lying around.
-        else:
-          second = input_vregs[(*idx[:-2], idx[-2] * 2 + 1, idx[-1])]
-        output_vregs[idx] = tpu.PackSubelementsOp(res_vreg_ty, [first, second])
+        parts = []
+        for i in range(packing):
+          sublane_ix = idx[-2] * packing + i
+          if sublane_ix < input_vregs.shape[-2]:
+            parts.append(input_vregs[(*idx[:-2], sublane_ix, idx[-1])])
+          else:
+            assert parts
+            parts.append(parts[-1])
+        output_vregs[idx] = tpu.PackSubelementsOp(res_vreg_ty, parts)
+    else:
+      raise NotImplementedError("Unsupported output tiling")
   return ctx.replace(op, assemble(result_ty, layout_out, output_vregs))
 
 
