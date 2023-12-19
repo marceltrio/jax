@@ -1359,6 +1359,16 @@ jax_test(
     ],
 )
 
+jax_test(
+    name = "export_back_compat_test",
+    srcs = ["export_back_compat_test.py"],
+    tags = [],
+    deps = [
+        "//jax:internal_export_back_compat_test_data",
+        "//jax:internal_export_back_compat_test_util",
+    ],
+)
+
 exports_files(
     [
         "api_test.py",
