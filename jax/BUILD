@@ -564,7 +564,7 @@ pytype_strict_library(
         exclude = [
             "experimental/pallas/gpu.py",
             "experimental/pallas/tpu.py",
-            "experimental/pallas/ops/tpu/*.py",
+            "experimental/pallas/ops/tpu/**/*.py",
         ],
     ),
     visibility = [
@@ -592,7 +592,7 @@ pytype_strict_library(
 
 pytype_strict_library(
     name = "pallas_tpu_ops",
-    srcs = glob(["experimental/pallas/ops/tpu/*.py"]),
+    srcs = glob(["experimental/pallas/ops/tpu/**/*.py"]),
     visibility = [
         ":pallas_tpu_users",
     ],
@@ -600,7 +600,7 @@ pytype_strict_library(
         ":jax",
         ":pallas",
         ":pallas_tpu",
-    ],
+    ] + py_deps("numpy"),
 )
 
 pytype_strict_library(
